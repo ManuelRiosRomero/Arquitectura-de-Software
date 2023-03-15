@@ -1,5 +1,0 @@
-Arquitectura: CQRS
-Frontend: Android Kotlin
-Backend: Java script & Express
-Comunicación: Graphl QL (Redux)
-BaseDatos: MongoDB
