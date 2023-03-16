@@ -4,30 +4,23 @@ const port = 3000
 
 const MongoClient = require('mongodb').MongoClient;
 
+const username = "santiago";
+const pass = "taller1";
+const cluster = "cluster0";
 
-const uri = 'mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<database>?retryWrites=true&w=majority';
+const uri = `mongodb+srv://${username}:${pass}@${cluster}.gxuusuy.mongodb.net/test`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
 app.get('/', (req, res) => {
-  client.connect(err => {
-    if (err) {
-      console.error('Error connecting to MongoDB:', err);
-      res.send('Error connecting to MongoDB');
-    } else {
-      const db = client.db('mydatabase');
-      const collection = db.collection('mycollection');
-      collection.find({}).toArray((err, docs) => {
-        if (err) {
-          console.error('Error fetching documents:', err);
-          res.send('Error fetching documents');
-        } else {
-          console.log('Documents:', docs);
-          res.send(docs);
-        }
-        client.close();
-      });
-    }
-  });
+  console.log("Getting....");
+  client.connect().then(() => {
+    const db = client.db('TestDatabase');
+      const collection = db.collection('Collection1');
+      collection.find({}).toArray().then(docs => {
+        console.log('Documents:', docs);
+        res.send(docs);
+      }).catch(err => {console.log("ERRR2: " + err)});
+  }).catch(err => {console.log("ERRRRR: " + err)});
 });
 
 app.listen(port, () => {
