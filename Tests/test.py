@@ -1,52 +1,89 @@
 import requests
 
-# Set the API endpoint URL
-url = 'http://localhost:8080/graphql'
+# Define the base URL for the GraphQL API
+url = "http://localhost:8080/graphql"
 
-# Define the GraphQL query to fetch all books
-query = '''
-query {
-  shoppingList(id: "6417856c79178c177f528273") {
-    id
-    name
-    description
-    value
-  }
-}
-'''
+# Define a function to make GraphQL requests
+def graphql_request(query, variables={}):
+    payload = {
+        "query": query,
+        "variables": variables
+    }
+    response = requests.post(url, json=payload)
+    response_json = response.json()
+    if "errors" in response_json:
+        raise Exception(response_json["errors"])
+    return response_json["data"]
 
-mutation = """
-mutation {
-  createShoppingList(id: "6417856c79178c177f528273", name: "Groceries", description: "Weekly grocery shopping list", value: 100.0) {
-    id
-    name
-    description
-    value
-  }
-}
+
+
+# Test the createUser resolver
+query = """
+    mutation CreateUser($input: UserInput!) {
+        createUser(input: $input) {
+            _id
+            name
+            email
+        }
+    }
 """
-response = requests.post(url, json={'query': mutation})
+variables = {
+    "input": {
+        "name": "John",
+        "email": "john@example.com"
+    }
+}
+result = graphql_request(query, variables)
+print("createUser result:", result)
 
-# Check if the response was successful
-if response.status_code == 200:
-    # Print the response data
-    data = response.json()['data']
-    print("R1: ", data)
-else:
-    # Print the error message if the response was not successful
-    error = response.json()['errors'][0]['message']
-    print(f'Error: {error}')
+createdId = result['createUser']['_id']
 
-# Send the GraphQL query to the API endpoint
-response = requests.post(url, json={'query': query})
+# Test the getUser resolver
+query = """
+    query GetUser($_id: String!) {
+        getUser(id: $_id) {
+            _id
+            name
+            email
+        }
+    }
+"""
+variables = {
+    "_id": createdId
+}
+result = graphql_request(query, variables)
+print("getUser result:", result)
+
+# Test the updateUser resolver
+query = """
+    mutation UpdateUser($_id: String!, $input: UserInput!) {
+        updateUser(id: $_id, input: $input) {
+            _id
+            name
+            email
+        }
+    }
+"""
+variables = {
+    "_id": createdId,
+    "input": {
+        "name": "Jane",
+        "email": "jane@example.com"
+    }
+}
+result = graphql_request(query, variables)
+print("updateUser result:", result)
 
 
-# Check if the response was successful
-if response.status_code == 200:
-    # Print the response data
-    data = response.json()['data']
-    print("R2: ", data)
-else:
-    # Print the error message if the response was not successful
-    error = response.json()['errors'][0]['message']
-    print(f'Error: {error}')
+# Test the deleteUser resolver
+query = """
+    mutation DeleteUser($id: String!) {
+        deleteUser(id: $id)
+    }
+"""
+variables = {
+    "id": createdId
+}
+result = graphql_request(query, variables)
+print("deleteUser result:", result)
+
