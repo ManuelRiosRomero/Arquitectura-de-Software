@@ -1,5 +1,6 @@
 const express = require('express');
 const { MongoClient } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { graphqlHTTP } = require('express-graphql');
 const { buildSchema } = require('graphql');
 const app = express();
@@ -16,81 +17,98 @@ const client = new MongoClient(mongoUri);
 
 // Define the schema for the GraphQL API
 const schema = buildSchema(`
-  type ShoppingList {
-    id: ID!
+  type User {
+    _id: String!
     name: String!
-    description: String
-    value: Float
+    email: String!
   }
 
-  type Mutation {
-    createShoppingList(id: ID!, name: String!, description: String, value: Float): ShoppingList!
-    updateShoppingList(id: ID!, name: String, description: String, value: Float): ShoppingList!
-    deleteShoppingList(id: ID!): ID!
+  input UserInput {
+    name: String!
+    email: String!
   }
 
   type Query {
-    shoppingLists: [ShoppingList!]!
-    shoppingList(id: ID!): ShoppingList
+    getUser(id: String!): User!
   }
-`);
+
+  type Mutation {
+    createUser(input: UserInput!): User!
+    updateUser(id: String!, input: UserInput!): User!
+    deleteUser(id: String!): Boolean
+  }
+  `);
 
 // Define the resolvers for the GraphQL API
+
 const resolvers = {
-  shoppingList: async ({ id }) => {
-    try {
-      // Connect to the query database
-      await client.connect();
-
-      // Find the item in the query database
-      const queryCollection = client.db('queryDB').collection('ShoppingList');
-      const result = await queryCollection.findOne({ _id: id });
-
-      // Disconnect from the query database
-      await client.close();
-
-      // Return the item as a response
-      
-      return result == null ? "Null":{ ...result, id: result._id };
-    } catch (error) {
-      console.error(error);
-      throw new Error('An error occurred while processing the query.');
+  getUser: async({ id }) => {
+    console.log("Got a request to getUser");
+    try{
+      const db = client.db('queryDB');
+      const user = await db.collection('users').findOne({ _id: new ObjectId(id) });
+      if (!user) {
+        throw new Error(`User with id ${id} not found`);
+      }
+      console.info(user)
+      return user;
+    }
+    catch(error)
+    {
+      console.error("Error: " + error);
+      throw new Error("An error ocurred while processing the query");
     }
   },
-
-  createShoppingList: async ({ id, name, description, value }) => {
-    console.log("Recieved request for creating shoppingList");
-    try {
-      // Connect to the command database
-      await client.connect();
-      qCollection = client.db('queryDB').collection('ShoppingList');
-      const existent = await qCollection.findOne({ _id: id });
-      if(existent) updateSoppingList({id, name, description, value});
-
-      collection = client.db('commandDB').collection('ShoppingList');
-      document = {id: id, name: name, description: description, value: value };
-      collection.insertOne(document, (err, result) => {
-        if (err) {
-          console.log('Error inserting document:', err);
-        } else {
-          console.log('Document inserted:', result.ops[0]);
-        }
-        
-        // Disconnect from the command database
-        client.close();
-        return `Item ${id} ${result.upsertedCount ? 'created' : 'updated'} successfully.`;
-      });
-      // Return a success message
-    } catch (error) {
-      console.error(error);
-      throw new Error('An error occurred while processing the command.');
+  createUser: async ({ input }) => {
+    console.log("Got a request to CreateUser");
+    try{
+      const db = client.db('commandDB');
+      const result = await db.collection('users').insertOne(input);
+      const dbQ = client.db('queryDB');
+      console.log("Id created: " + result.insertedId)
+      const user = await dbQ.collection('users').findOne({ _id: result.insertedId });
+      console.log("Id gotten: " + user._id);
+      if (!user) {
+        throw new Error(`User with id ${result.insertedId} not found`);
+      }
+      return user;
+    }
+    catch(error)
+    {
+      console.error("Error: " + error);
+      throw new Error("An error ocurred while processing the query");
     }
   },
-
-  updateShoppingList: async ({id, name, description, value}) => {
-    console.log("Recieved request to update shoppingList");
-
-  }
+  updateUser: async ({ id, input }) => {
+    console.log("Got a request to UpdateUser");
+    try{
+      const db = client.db('commandDB');
+      await db.collection('users').updateOne({ _id: new ObjectId(id) }, { $set: input });
+      const user = await db.collection('users').findOne({ _id: new ObjectId(id) });
+      if (!user) {
+        throw new Error(`User with id ${id} not found`);
+      }
+      return user;
+    }
+    catch(error)
+    {
+      console.error("Error: " + error);
+      throw new Error("An error ocurred while processing the query");
+    }
+  },
+  deleteUser: async ({ id }) => {
+    console.log("Got a request to DeleteUser");
+    try {
+      const db = client.db('commandDB');
+      const result = await db.collection('users').deleteOne({ _id: new ObjectId(id) });
+      return result.deletedCount === 1;
+    }
+    catch(error)
+    {
+      console.error("Error: " + error);
+      throw new Error("An error ocurred while processing the query");
+    }
+  },
 };
 
 // Define the GraphQL endpoint
@@ -102,6 +120,9 @@ app.use('/graphql', graphqlHTTP({
 
 
 // Start the server
-app.listen(8080, () => {
-  console.log('Server started on port 8080');
+// Connect to MongoDB and start the server
+client.connect().then(() => {
+  app.listen(8080, () => {
+    console.log('Server started on port 8080');
+  });
 });
