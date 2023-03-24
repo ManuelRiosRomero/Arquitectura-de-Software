@@ -30,6 +30,7 @@ const schema = buildSchema(`
 
   type Query {
     getUser(id: String!): User!
+    users: [User!]!
   }
 
   type Mutation {
@@ -56,6 +57,20 @@ const resolvers = {
     catch(error)
     {
       console.error("Error: " + error);
+      throw new Error("An error ocurred while processing the query");
+    }
+  },
+  users: async() => {
+    console.log("Got a request to get all users");
+    try{
+      const db = client.db('queryDB');
+      const users = await db.collection('users').find().toArray();
+      console.log(`Found ${users.length} users`);
+      return users;
+    }
+    catch(error)
+    {
+      console.log("Error: " +  error);
       throw new Error("An error ocurred while processing the query");
     }
   },
