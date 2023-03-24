@@ -9,11 +9,17 @@ def graphql_request(query, variables={}):
         "query": query,
         "variables": variables
     }
-    response = requests.post(url, json=payload)
-    response_json = response.json()
-    if "errors" in response_json:
-        raise Exception(response_json["errors"])
-    return response_json["data"]
+    print(payload)
+    try:
+        response = requests.post(url, json=payload)
+        response_json = response.json()
+        if "errors" in response_json:
+            raise Exception(response_json["errors"])
+        return response_json["data"]
+    except ConnectionError:
+        print("Error while connecting to the Server")
+    except Exception: 
+        print("Unknown error while sending/recieving the request")
 
 
 
@@ -29,8 +35,8 @@ query = """
 """
 variables = {
     "input": {
-        "name": "John",
-        "email": "john@example.com"
+        "name": "Barbs",
+        "email": "Barbs@example.com"
     }
 }
 result = graphql_request(query, variables)
@@ -53,6 +59,19 @@ variables = {
 }
 result = graphql_request(query, variables)
 print("getUser result:", result)
+
+#Test the getUsers resolver
+query = '''
+        query {
+            users {
+                _id
+                name
+                email
+            }
+        }
+    '''
+result = graphql_request(query)
+print("Users result: ", result)
 
 # Test the updateUser resolver
 query = """
