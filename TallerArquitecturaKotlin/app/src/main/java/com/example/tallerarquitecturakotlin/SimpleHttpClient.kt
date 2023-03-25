@@ -13,9 +13,10 @@ class SimpleHttpClient(private val url: String) {
     fun sendJson(json: String): String {
         val requestBody = json.toRequestBody("application/json".toMediaTypeOrNull())
 
+        val finalUrl = "Http://$url:8080/graphql"
         Log.d("Loquesta", requestBody.toString())
         val request = Request.Builder()
-            .url(url)
+            .url(finalUrl)
             .post(requestBody)
             .build()
 
