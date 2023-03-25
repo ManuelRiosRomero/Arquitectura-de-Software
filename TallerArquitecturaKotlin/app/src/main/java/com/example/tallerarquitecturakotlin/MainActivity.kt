@@ -41,15 +41,17 @@ class MainActivity : AppCompatActivity() {
         val button = findViewById<Button>(R.id.botonAgregar)
         button.setOnClickListener {
 
-            var UsersQueryV2 = ("{'query': '\n    mutation CreateUser(\$input: UserInput!) {\n        createUser(input: \$input) {\n            _id\n            name\n            email\n        }\n    }\n', 'variables': {'input': {'name': '${inputText1.text}', 'email': '${inputText2.text}'}}}")
+            Thread{
+                var UsersQueryV2 = ("{'query': '\n    mutation CreateUser(\$input: UserInput!) {\n        createUser(input: \$input) {\n            _id\n            name\n            email\n        }\n    }\n', 'variables': {'input': {'name': '${inputText1.text}', 'email': '${inputText2.text}'}}}")
 
-            httpClient = SimpleHttpClient(inputText3.text.toString())
+                httpClient = SimpleHttpClient(inputText3.text.toString())
 
-            var respuesta = (httpClient.sendJson(UsersQueryV2))
+                var respuesta = (httpClient.sendJson(UsersQueryV2))
 
-            respuesta = (httpClient.sendJson(UsersQuery))
+                respuesta = (httpClient.sendJson(UsersQuery))
 
-            resultText.text = respuesta
+                resultText.text = respuesta
+            }.start()
         }
     }
 }
