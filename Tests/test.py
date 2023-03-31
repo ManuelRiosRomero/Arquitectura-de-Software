@@ -19,19 +19,13 @@ def graphql_request(query, url, variables={}):
         return response_json["data"]
     except ConnectionError:
         print("Error while connecting to the Server")
-    except Exception: 
-        print("Unknown error while sending/recieving the request")
 
 
 
 # Test the createUser resolver
 query = """
     mutation CreateUser($input: UserInput!) {
-        createUser(input: $input) {
-            _id
-            name
-            email
-        }
+        createUser(input: $input)
     }
 """
 variables = {
@@ -43,23 +37,7 @@ variables = {
 result = graphql_request(query, commandUrl, variables)
 print("createUser result:", result)
 
-createdId = result['createUser']['_id']
-
-# Test the getUser resolver
-query = """
-    query GetUser($_id: String!) {
-        getUser(id: $_id) {
-            _id
-            name
-            email
-        }
-    }
-"""
-variables = {
-    "_id": createdId
-}
-result = graphql_request(query, queryUrl, variables)
-print("getUser result:", result)
+sampleID = result["createUser"]
 
 #Test the getUsers resolver
 query = '''
@@ -74,10 +52,10 @@ query = '''
 result = graphql_request(query, queryUrl)
 print("Users result: ", result)
 
-# Test the updateUser resolver
+# Test the getUser resolver
 query = """
-    mutation UpdateUser($_id: String!, $input: UserInput!) {
-        updateUser(id: $_id, input: $input) {
+    query GetUser($_id: String!) {
+        getUser(id: $_id) {
             _id
             name
             email
@@ -85,7 +63,19 @@ query = """
     }
 """
 variables = {
-    "_id": createdId,
+    "_id": sampleID
+}
+result = graphql_request(query, queryUrl, variables)
+print("getUser result:", result)
+
+# Test the updateUser resolver
+query = """
+    mutation UpdateUser($_id: String!, $input: UserInput!) {
+        updateUser(id: $_id, input: $input) 
+    }
+"""
+variables = {
+    "_id": sampleID,
     "input": {
         "name": "Jane",
         "email": "jane@example.com"
@@ -102,7 +92,7 @@ query = """
     }
 """
 variables = {
-    "id": createdId
+    "id": sampleID
 }
 result = graphql_request(query, commandUrl, variables)
 print("deleteUser result:", result)
