@@ -1,10 +1,11 @@
 import requests
 
 # Define the base URL for the GraphQL API
-url = "http://localhost:8080/graphql"
+queryUrl = "http://localhost:3000/graphql"
+commandUrl = "http://localhost:8080/graphql"
 
 # Define a function to make GraphQL requests
-def graphql_request(query, variables={}):
+def graphql_request(query, url, variables={}):
     payload = {
         "query": query,
         "variables": variables
@@ -39,7 +40,7 @@ variables = {
         "email": "Barbs@example.com"
     }
 }
-result = graphql_request(query, variables)
+result = graphql_request(query, commandUrl, variables)
 print("createUser result:", result)
 
 createdId = result['createUser']['_id']
@@ -57,7 +58,7 @@ query = """
 variables = {
     "_id": createdId
 }
-result = graphql_request(query, variables)
+result = graphql_request(query, queryUrl, variables)
 print("getUser result:", result)
 
 #Test the getUsers resolver
@@ -70,7 +71,7 @@ query = '''
             }
         }
     '''
-result = graphql_request(query)
+result = graphql_request(query, queryUrl)
 print("Users result: ", result)
 
 # Test the updateUser resolver
@@ -90,7 +91,7 @@ variables = {
         "email": "jane@example.com"
     }
 }
-result = graphql_request(query, variables)
+result = graphql_request(query, commandUrl, variables)
 print("updateUser result:", result)
 
 
@@ -103,6 +104,6 @@ query = """
 variables = {
     "id": createdId
 }
-result = graphql_request(query, variables)
+result = graphql_request(query, commandUrl, variables)
 print("deleteUser result:", result)
 
