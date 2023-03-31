@@ -32,10 +32,14 @@ const schema = buildSchema(`
     name: String!
     email: String!
   }
+  type Query {
+    getUser(id: String!): User!
+    users: [User!]!
+  }
 
   type Mutation {
-    createUser(input: UserInput!): User!
-    updateUser(id: String!, input: UserInput!): User!
+    createUser(input: UserInput!): String!
+    updateUser(id: String!, input: UserInput!): Boolean
     deleteUser(id: String!): Boolean
   }
   `);
@@ -43,6 +47,14 @@ const schema = buildSchema(`
 // Define the resolvers for the GraphQL API
 
 const resolvers = {
+  getUser: ({ id }) => {
+    console.log("Got a request to getUser");
+    return "Command server not appropriate to send queries"
+  },
+  users: () => {
+    console.log("Got a request to get all users");
+    return "Command server not appropriate to send queries"
+  },
   createUser: async ({ input }) => {
     console.log("Got a request to CreateUser");
     try{
@@ -51,7 +63,8 @@ const resolvers = {
       if (!result) {
         throw new Error(`Error creating user`);
       }
-      return user;
+      console.log("Result: " + result.insertedId);
+      return result.insertedId;
     }
     catch(error)
     {
@@ -67,7 +80,7 @@ const resolvers = {
       if (!result) {
         throw new Error(`Error updating user`);
       }
-      return result;
+      return result.modifiedCount >= 1;
     }
     catch(error)
     {

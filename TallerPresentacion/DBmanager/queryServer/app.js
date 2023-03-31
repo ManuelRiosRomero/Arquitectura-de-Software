@@ -86,7 +86,7 @@ app.use('/graphql', graphqlHTTP({
 // Start the server
 // Connect to MongoDB and start the server
 client.connect().then(() => {
-  app.listen(3000, () => {
-    console.log('Query server started on localHost port 3000');
+  app.listen(port, () => {
+    console.log(`Query server started on localHost port ${port}`);
   });
 });
