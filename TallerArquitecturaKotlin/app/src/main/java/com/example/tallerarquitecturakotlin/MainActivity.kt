@@ -7,6 +7,11 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
+import androidx.constraintlayout.motion.widget.Debug
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
+import java.io.Console
+import java.util.concurrent.LinkedBlockingQueue
 
 
 class MainActivity : AppCompatActivity() {
@@ -14,6 +19,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        val queryPort: String = "3000";
+        val commandPort: String = "8080";
 
         lateinit var inputText1: EditText
         lateinit var inputText2: EditText
@@ -28,30 +35,41 @@ class MainActivity : AppCompatActivity() {
         inputText3 = findViewById(R.id.TextURL)
         resultText = findViewById(R.id.Request)
 
-        var httpClient = SimpleHttpClient("https://example.com/api%22")
+        var commandClient = SimpleHttpClient("192.168.0.12", commandPort)
+        var queryClient =  SimpleHttpClient("192.168.0.12", queryPort)
 
-        var UsersQuery = ("{\n" +
+        var getUsersQuery = ("{\n" +
                 "  \"query\": \"query { users { _id name email } }\",\n" +
                 "  \"variables\": {}\n" +
                 "}")
-
-
-        resultText.text = ("Query")
-
+        resultText.text = "Waiting for ip"
         val button = findViewById<Button>(R.id.botonAgregar)
         button.setOnClickListener {
+            val queue = LinkedBlockingQueue<String>()
+            Thread {
+                var UsersQueryV2 =
+                    ("{\n" +
+                            "\t\"query\": \"mutation CreateUser(\$input: UserInput!){ createUser(input: \$input)}\",\n" +
+                            "\t\"variables\": {\n" +
+                            "\t\t\"input\": {\n" +
+                            "\t\t\t\"name\": \"${inputText1.text}\",\n" +
+                            "\t\t\t\"email\": \"${inputText2.text}\"\n" +
+                            "\t\t}\n" +
+                            "\t}\n" +
+                            "}")
 
-            Thread{
-                var UsersQueryV2 = ("{'query': '\n    mutation CreateUser(\$input: UserInput!) {\n        createUser(input: \$input) {\n            _id\n            name\n            email\n        }\n    }\n', 'variables': {'input': {'name': '${inputText1.text}', 'email': '${inputText2.text}'}}}")
+                commandClient = SimpleHttpClient(inputText3.text.toString(), commandPort)
 
-                httpClient = SimpleHttpClient(inputText3.text.toString())
+                (commandClient.sendJson(UsersQueryV2))
 
-                var respuesta = (httpClient.sendJson(UsersQueryV2))
-
-                respuesta = (httpClient.sendJson(UsersQuery))
-
-                resultText.text = respuesta
             }.start()
+            Thread(){
+                queryClient = SimpleHttpClient(inputText3.text.toString(), queryPort)
+
+                queue.add(queryClient.sendJson(getUsersQuery))
+            }.start()
+            resultText.text = queue.take()
         }
     }
+
 }

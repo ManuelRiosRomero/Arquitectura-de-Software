@@ -48,9 +48,11 @@
 
     <ScrollView
         android:id="@+id/ScrollviewLista"
-        android:layout_width="411dp"
+        android:layout_width="0dp"
         android:layout_height="223dp"
-        android:layout_marginTop="88dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="60dp"
+        android:layout_marginEnd="32dp"
         app:layout_constraintBottom_toTopOf="@+id/EditName"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -64,8 +66,7 @@
             <TextView
                 android:id="@+id/Request"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                />
+                android:layout_height="wrap_content" />
         </LinearLayout>
     </ScrollView>
 
@@ -75,7 +76,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:ems="10"
-        android:hint="Url"
+        android:hint="ServersIp"
         android:inputType="textPersonName"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

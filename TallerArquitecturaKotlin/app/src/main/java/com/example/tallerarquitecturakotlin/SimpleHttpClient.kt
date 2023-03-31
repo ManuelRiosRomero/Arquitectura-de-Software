@@ -11,10 +11,7 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
 
-class SimpleHttpClient(private val url: String) {
-
-
-
+class SimpleHttpClient(private val url: String, private val port: String) {
 
     fun sendJson(json: String): String {
         val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
@@ -35,7 +32,7 @@ class SimpleHttpClient(private val url: String) {
 
         val requestBody = json.toRequestBody("application/json".toMediaTypeOrNull())
 
-        val finalUrl = "http://$url:3000/graphql"
+        val finalUrl = "http://$url:$port/graphql"
         Log.d("FinalURL", finalUrl)
         val request = Request.Builder()
             .url(finalUrl)

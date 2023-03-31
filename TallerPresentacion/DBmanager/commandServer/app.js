@@ -33,8 +33,7 @@ const schema = buildSchema(`
     email: String!
   }
   type Query {
-    getUser(id: String!): User!
-    users: [User!]!
+    users: String
   }
 
   type Mutation {
@@ -47,10 +46,6 @@ const schema = buildSchema(`
 // Define the resolvers for the GraphQL API
 
 const resolvers = {
-  getUser: ({ id }) => {
-    console.log("Got a request to getUser");
-    return "Command server not appropriate to send queries"
-  },
   users: () => {
     console.log("Got a request to get all users");
     return "Command server not appropriate to send queries"
