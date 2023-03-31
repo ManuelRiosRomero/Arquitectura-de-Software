@@ -5,6 +5,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.io.IOException
+import java.net.UnknownHostException
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import javax.net.ssl.SSLContext
@@ -34,6 +35,8 @@ class SimpleHttpClient(private val url: String, private val port: String) {
 
         val finalUrl = "http://$url:$port/graphql"
         Log.d("FinalURL", finalUrl)
+        if(url == null || url.isEmpty() || url.isBlank())
+            return "Ip no puede estar vacía"
         val request = Request.Builder()
             .url(finalUrl)
             .post(requestBody)
@@ -43,7 +46,10 @@ class SimpleHttpClient(private val url: String, private val port: String) {
 
         try {
             response = client.newCall(request).execute()
-        } catch (e: IOException) {
+        } catch (e: UnknownHostException) {
+            return "No se pudo conectar con el servidor en $finalUrl"
+        }
+        catch (e: IOException) {
             e.printStackTrace()
         }
 
@@ -51,6 +57,6 @@ class SimpleHttpClient(private val url: String, private val port: String) {
             return response.body?.string() ?: "Error con el Query"
         }
 
-        return "Response sis null"
+        return "Response is null"
     }
 }

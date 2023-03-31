@@ -7,10 +7,6 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
-import androidx.constraintlayout.motion.widget.Debug
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
-import java.io.Console
 import java.util.concurrent.LinkedBlockingQueue
 
 
@@ -46,23 +42,46 @@ class MainActivity : AppCompatActivity() {
         val button = findViewById<Button>(R.id.botonAgregar)
         button.setOnClickListener {
             val queue = LinkedBlockingQueue<String>()
-            Thread {
-                var UsersQueryV2 =
-                    ("{\n" +
-                            "\t\"query\": \"mutation CreateUser(\$input: UserInput!){ createUser(input: \$input)}\",\n" +
-                            "\t\"variables\": {\n" +
-                            "\t\t\"input\": {\n" +
-                            "\t\t\t\"name\": \"${inputText1.text}\",\n" +
-                            "\t\t\t\"email\": \"${inputText2.text}\"\n" +
-                            "\t\t}\n" +
-                            "\t}\n" +
-                            "}")
+            if(inputText1.text.isEmpty() || inputText1.text.isBlank())
+            {
+                resultText.text = "El nombre no puede estar vacío"
+            }
+            else if(inputText2.text.isEmpty() || inputText2.text.isBlank())
+            {
+                resultText.text = "El email no puede estar vacío"
+            }
+            else
+            {
+                Thread {
+                    var UsersQueryV2 =
+                        ("{\n" +
+                                "\t\"query\": \"mutation CreateUser(\$input: UserInput!){ createUser(input: \$input)}\",\n" +
+                                "\t\"variables\": {\n" +
+                                "\t\t\"input\": {\n" +
+                                "\t\t\t\"name\": \"${inputText1.text}\",\n" +
+                                "\t\t\t\"email\": \"${inputText2.text}\"\n" +
+                                "\t\t}\n" +
+                                "\t}\n" +
+                                "}")
 
-                commandClient = SimpleHttpClient(inputText3.text.toString(), commandPort)
+                    commandClient = SimpleHttpClient(inputText3.text.toString(), commandPort)
 
-                (commandClient.sendJson(UsersQueryV2))
+                    (commandClient.sendJson(UsersQueryV2))
 
-            }.start()
+                }.start()
+                Thread(){
+                    queryClient = SimpleHttpClient(inputText3.text.toString(), queryPort)
+
+                    queue.add(queryClient.sendJson(getUsersQuery))
+                }.start()
+                resultText.text = queue.take()
+            }
+
+        }
+
+        val agregarButton = findViewById<Button>(R.id.Actualizar)
+        agregarButton.setOnClickListener {
+            val queue = LinkedBlockingQueue<String>()
             Thread(){
                 queryClient = SimpleHttpClient(inputText3.text.toString(), queryPort)
 
